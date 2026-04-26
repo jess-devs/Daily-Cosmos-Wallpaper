@@ -1,0 +1,4 @@
+src/cache
+Thumbs.db
+*.log
+.DS_Store

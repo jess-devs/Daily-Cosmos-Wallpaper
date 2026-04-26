@@ -1,3 +1,9 @@
+# Regular function so [CosmoWallpaperNative] is resolved at call time, not at class-parse time
+function Invoke-NativeSPI {
+    param([int]$action, [string]$path, [int]$flags)
+    return [CosmoWallpaperNative]::SystemParametersInfo($action, 0, $path, $flags)
+}
+
 class WallpaperSetter {
     # Win32 API: SPI_SETDESKWALLPAPER = 0x0014
     static [int]$SPI_SET = 0x0014
@@ -17,15 +23,13 @@ class WallpaperSetter {
         Set-ItemProperty 'HKCU:\Control Panel\Desktop' -Name TileWallpaper `
             -Value '0'
 
-        [CosmoWallpaperNative]::SystemParametersInfo(
-            [WallpaperSetter]::SPI_SET,
-            0,
-            $absolutePath,
-            [WallpaperSetter]::SPI_SEND
-        ) | Out-Null
+        $ok = Invoke-NativeSPI -action ([WallpaperSetter]::SPI_SET) `
+            -path $absolutePath `
+            -flags ([WallpaperSetter]::SPI_SEND)
+        if ($ok -eq 0) { throw "SystemParametersInfo falló al aplicar el fondo (ruta: $absolutePath)" }
     }
 
-    # Carga el tipo P/Invoke solo una vez por proceso
+    # Registra el tipo P/Invoke una sola vez por proceso; debe correr antes de Apply
     hidden [void] RegisterNativeType() {
         if (([System.Management.Automation.PSTypeName]'CosmoWallpaperNative').Type) { return }
 

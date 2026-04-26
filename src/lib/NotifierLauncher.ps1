@@ -11,15 +11,17 @@ class NotifierLauncher {
     [void] Launch([object]$image) {
         if (-not (Test-Path $this.ScriptPath)) { return }
 
-        $explanation = $image.ShortExplanation(120)
+        $title = $image.Title -replace '"', "'" -replace '\r?\n', ' '
+        $copyright = $image.CreditLine() -replace '"', "'" -replace '\r?\n', ' '
+        $explanation = ($image.ShortExplanation(120) -replace '\r?\n', ' ').Trim() -replace '"', "'"
 
         Start-Process -FilePath 'powershell.exe' -ArgumentList @(
             '-ExecutionPolicy', 'Bypass',
             '-WindowStyle', 'Hidden',
             '-File', "`"$($this.ScriptPath)`"",
-            '-Title', "`"$($image.Title)`"",
+            '-Title', "`"$title`"",
             '-Date', "`"$($image.Date)`"",
-            '-Copyright', "`"$($image.CreditLine())`"",
+            '-Copyright', "`"$copyright`"",
             '-Explanation', "`"$explanation`""
         ) -WindowStyle Hidden
     }

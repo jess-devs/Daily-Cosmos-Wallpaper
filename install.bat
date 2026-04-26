@@ -99,7 +99,7 @@ echo.
 echo  [4/5] Creando tarea programada (diario 08:00 AM)...
 schtasks /create /tn "%TASK_NAME%" ^
 /tr "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \"%INSTALL_DIR%\wallpaper.ps1\"" ^
-/sc daily /st 08:00 /ru "%USERNAME%" /rl LIMITED /f
+/sc daily /st 08:00 /ru "%USERNAME%" /rl LIMITED /it /f
 if !errorlevel! NEQ 0 (
   echo  [X] Error al crear la tarea programada.
   goto INSTALL_FAIL

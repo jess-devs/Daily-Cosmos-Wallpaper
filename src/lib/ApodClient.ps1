@@ -44,7 +44,8 @@ class ApodClient {
     [string]$ApiKey
 
     ApodClient([string]$apiKey) {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        [Net.ServicePointManager]::SecurityProtocol =
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         $this.ApiKey = $apiKey
     }
 
@@ -53,6 +54,7 @@ class ApodClient {
         $url = "$([ApodClient]::Endpoint)?api_key=$($this.ApiKey)"
         $client = New-Object System.Net.WebClient
         $client.Encoding = [System.Text.Encoding]::UTF8
+        $raw = $null
         try {
             $raw = ($client.DownloadString($url) | ConvertFrom-Json)
         }
