@@ -20,11 +20,18 @@ Cambia automaticamente el fondo de pantalla de Windows cada dia usando la imagen
 
 ```
 daily-cosmos-wallpaper/
-  install.bat          <- Instalador/desinstalador (ejecutar como Admin)
+  install.bat              <- Instalador/desinstalador (ejecutar como Admin)
   src/
-    wallpaper.ps1      <- Script principal
-    notify.ps1         <- Notificacion Toast nativa
-    config.json        <- Configuracion por defecto
+    wallpaper.ps1          <- Orquestador principal
+    notify.ps1             <- Notificacion Toast nativa
+    config.json            <- Configuracion por defecto
+    lib/
+      AppConfig.ps1        <- Lectura y validacion de config.json
+      ApodClient.ps1       <- Cliente HTTP para la API NASA APOD
+      ImageCache.ps1       <- Descarga y limpieza del cache local
+      WallpaperSetter.ps1  <- Aplica el fondo via Win32 API (P/Invoke)
+      NotifierLauncher.ps1 <- Lanza notify.ps1 como proceso independiente
+      Logger.ps1           <- Escritura de wallpaper.log
 ```
 
 Al instalar, los archivos se copian a `C:\ProgramData\CosmoWallpaper\`.
@@ -65,8 +72,10 @@ Las notificaciones tambien se pueden cambiar desde el menu del instalador (opcio
 
 ## Como funciona
 
-1. `wallpaper.ps1` llama a la API de NASA APOD via `System.Net.WebClient`
-2. Si la imagen del dia es una foto (no video), la descarga al cache local
-3. Cambia el fondo de pantalla usando `SystemParametersInfo` (Win32 API via P/Invoke)
-4. Si las notificaciones estan activas, lanza `notify.ps1` como proceso separado
-5. Registra la actividad en `wallpaper.log`
+1. `wallpaper.ps1` carga la configuracion via `AppConfig` y delega cada paso a su clase correspondiente en `lib/`
+2. `ApodClient` consulta la API NASA APOD con `System.Net.WebClient` y deserializa la respuesta
+3. Si el APOD del dia es un video (no imagen), el proceso termina sin error
+4. `ImageCache` descarga la imagen HD (o SD como fallback) al cache local y elimina entradas antiguas
+5. `WallpaperSetter` aplica la imagen usando `SystemParametersInfo` (Win32 API via P/Invoke)
+6. Si las notificaciones estan activas, `NotifierLauncher` ejecuta `notify.ps1` como proceso hijo independiente
+7. `Logger` registra el resultado (o el error) en `wallpaper.log`
